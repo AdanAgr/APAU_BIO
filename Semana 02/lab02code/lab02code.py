@@ -1,8 +1,5 @@
 import random
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import sklearn
 
 class GeneticAlgorithm:
     """
@@ -65,159 +62,14 @@ class GeneticAlgorithm:
         #    - construir nueva población con selección -> crossover -> mutación
         #    - checks de detención temprana
         #    - registrar mejor fitness
-        population = [ml_task.create_individual() for _ in range(self.pop_size)]
+        pass
 
-        # We'll track the best SSE (which we want to minimize) -> or track best fitness = -SSE (maximize).
-        global_best = None
-        global_best_fit = -float('inf')
-        global_best_sse = float('inf')
-
-        best_sse_so_far = float('inf')
-        no_improvement_counter = 0
-
-        # for table
-        try:
-            from prettytable import PrettyTable
-            table = PrettyTable()
-            table.field_names = ["Gen", "Representation", "Best Fitness", "Best SSE", "Centers (truncated)"]
-        except ImportError:
-            table = None
-
-        for gen in range(self.generations):
-            # Evaluate fitness
-            fitnesses = [ml_task.fitness_function(ind) for ind in population]
-            
-            # Identify best of this generation
-            best_idx = np.argmax(fitnesses)
-            best_ind = population[best_idx]
-            best_fit = fitnesses[best_idx]
-            current_sse = ml_task.calculate_sse(best_ind)
-
-            # Update global best
-            if current_sse < global_best_sse:
-                global_best = best_ind
-                global_best_fit = best_fit
-                global_best_sse = current_sse
-
-            # Early stopping check
-            if current_sse < best_sse_so_far - self.min_delta:
-                best_sse_so_far = current_sse
-                no_improvement_counter = 0
-            else:
-                no_improvement_counter += 1
-
-            if no_improvement_counter >= self.patience:
-                print(f"Early stopping at generation {gen} due to no SSE improvement.")
-                break
-
-            # Logging to table
-            if table is not None:
-                real_params = best_ind
-                # Show only first few center coords to avoid giant columns
-                truncated_str = ", ".join([f"{x:.2f}" for x in real_params[:6]]) + " ..."
-                table.add_row([
-                    gen,
-                    f"{best_ind}",
-                    f"{best_fit:.3f}",
-                    f"{current_sse:.3f}",
-                    truncated_str
-                ])
-
-            # Selection
-            selected = self.tournament_selection(population, fitnesses)
-
-            # Crossover & Mutation -> next gen
-            new_pop = []
-            for i in range(0, len(selected), 2):
-                p1 = selected[i]
-                p2 = selected[(i+1) % len(selected)]
-                c1, c2 = ml_task.crossover(p1, p2, self.crossover_rate)
-                c1 = ml_task.mutation(c1, gen, self.generations)
-                c2 = ml_task.mutation(c2, gen, self.generations)
-                new_pop.append(c1)
-                new_pop.append(c2)
-
-            population = new_pop[:self.pop_size]
-
-        if table is not None:
-            print(table)
-
-        # Final check among last population
-        final_fitnesses = [ml_task.fitness_function(ind) for ind in population]
-        final_best_idx = np.argmax(final_fitnesses)
-        final_best_ind = population[final_best_idx]
-        final_best_fit = final_fitnesses[final_best_idx]
-        final_best_sse = ml_task.calculate_sse(final_best_ind)
-
-        # Compare to global best across all gens
-        if global_best is not None and global_best_sse < final_best_sse:
-            truly_best = global_best
-            truly_best_fit = global_best_fit
-            truly_best_sse = global_best_sse
-        else:
-            truly_best = final_best_ind
-            truly_best_fit = final_best_fit
-            truly_best_sse = final_best_sse
-
-        # Print final info
-        print("\n=== Final Reported Best Clustering (Global) ===")
-        real_params = truly_best
-        print(f"Best Fitness (=-SSE): {truly_best_fit:.4f}")
-        print(f"SSE: {truly_best_sse:.4f}")
-        # Optionally print out all center coordinates:
-        reshaped_centers = np.array(real_params).reshape(ml_task.k, ml_task.dim)
-        print(f"Cluster Centers:\n{reshaped_centers}")
-
-        # Plot final result in 2D
-        self.plot_clusters(truly_best, ml_task)
-
-
-        return truly_best
-
-    def tournament_selection(self, population, fitnesses, k=3):
-        selected = []
-        zipped = list(zip(population, fitnesses))
-        for _ in range(len(population)):
-            tournament = random.sample(zipped, k)
-            winner = max(tournament, key=lambda x: x[1])[0]
-            selected.append(winner)
-        return selected
-
-
-
-    def plot_clusters(self, best_solution, ml_task):
+    def _tournament_selection(self, population, fitnesses, tsize=3):
         """
-        Para datos en 2D: mostrar los puntos coloreados por cluster y los centros finales.
+        Ejemplo: selección por torneo para escoger un padre.
         """
-        if ml_task.dim != 2:
-            print("Reduciendo dimensiones a 2D con PCA...")
-            from sklearn.decomposition import PCA
-            pca = PCA(n_components=2)
-            data_2d = pca.fit_transform(ml_task.data)
-            centers_reshaped = np.array(best_solution).reshape(ml_task.k, ml_task.dim)
-            centers_2d = pca.transform(centers_reshaped)
-        else:
-            data_2d = ml_task.data
-            centers_2d = np.array(best_solution).reshape(ml_task.k, ml_task.dim)
-        
-        # Asignar cada punto al centro más cercano
-        dists = np.linalg.norm(data_2d[:, None, :] - centers_2d[None, :, :], axis=2)
-        cluster_assignments = np.argmin(dists, axis=1)
-        
-        # Graficar los puntos coloreados según su cluster asignado
-        plt.figure(figsize=(8, 6))
-        for i in range(ml_task.k):
-            plt.scatter(data_2d[cluster_assignments == i, 0],
-                        data_2d[cluster_assignments == i, 1], label=f'Cluster {i}')
-        
-        # Graficar los centros de cluster
-        plt.scatter(centers_2d[:, 0], centers_2d[:, 1], c='red', marker='x', s=200, label='Centros')
-        plt.xlabel('Dim 1')
-        plt.ylabel('Dim 2')
-        plt.legend()
-        plt.title('Clustering con Algoritmo Genético')
-        plt.show()
-
+        # TODO: implementar o permitir que lo hagan los estudiantes
+        pass
 
 ### `machine_learning_task.py` (Esqueleto de Tarea de ML Especializada)
 
@@ -231,24 +83,14 @@ class MachineLearningTask:
       - mutar los individuos
     """
 
-    def __init__(self, data="Mall_Customers.csv", k=3, mutation_rate=0.05, generations=50,):
+    def __init__(self, data, k=3):
         """
         :param data: podría ser un conjunto de datos de entrenamiento, o un array de features, etc.
         :param k: parámetro de ejemplo (número de clústeres u otro objetivo).
         """
         self.data = data
         self.k = k
-        self.dim = data.shape[1]
-        self.params_per_ind = self.k * self.dim
-        self.lower_bound = -10
-        self.upper_bound = 10
-
-        self.mutation_rate = mutation_rate
-        self.generations = generations
-
-        self.data = np.array(data)
-        # optionally: check self.data.shape[1] == dim, etc.
-
+        # Posiblemente derivar otros parámetros (p.ej., params_per_ind, etc.)
 
     def create_individual(self):
         """
@@ -258,21 +100,8 @@ class MachineLearningTask:
           - Para clasificación: conjunto de pesos o hiperparámetros.
           - Para regresión simbólica: estructura de árbol o ecuación linear.
         """
-        return tuple(
-                random.uniform(self.lower_bound, self.upper_bound)
-                for _ in range(self.params_per_ind)
-            )
+        pass
 
-    def calculate_sse(self, individual):
-            """
-            Utility to get the SSE for an individual's cluster centers.
-            """
-            centers_vals = individual
-            centers = np.array(centers_vals).reshape(self.k, self.dim)
-            dists = np.linalg.norm(self.data[:, None, :] - centers[None, :, :], axis=2)
-            min_dists = np.min(dists, axis=1)
-            sse = np.sum(min_dists**2)
-            return sse
     def fitness_function(self, individual):
         """
         Evalúa la calidad del individuo y retorna
@@ -282,73 +111,17 @@ class MachineLearningTask:
           - Clasificación: exactitud en validación
           - Regresión: -ECM
         """
-        centers_vals = individual
-
-        # Reshape centers_vals into (k, dim)
-        centers = np.array(centers_vals).reshape(self.k, self.dim)
-
-        # Sum of squared distances
-        # for each point, find nearest center
-        points = self.data
-        # distances shape => (#points, #centers)
-        dists = np.linalg.norm(points[:, None, :] - centers[None, :, :], axis=2)
-        # find min distance for each point
-        min_dists = np.min(dists, axis=1)
-        sse = np.sum(min_dists**2)
-
-        return -sse  # negate to maximize
-
+        pass
 
     def crossover(self, parent1, parent2, crossover_rate):
         """
         Retorna dos 'hijos'. Tal vez no hacer nada si random.random() > crossover_rate.
         """
-        alpha = random.random()
-        child1 = tuple(alpha*x1 + (1-alpha)*x2 for x1,x2 in zip(parent1,parent2))
-        child2 = tuple(alpha*x2 + (1-alpha)*x1 for x1,x2 in zip(parent1,parent2))
-        return child1, child2
+        pass
 
-
-    def mutation(self, individual, generation, max_gens):
-        adaptive_rate = self.mutation_rate * (1.0 - float(generation)/max_gens)
-            
-        ind_list = list(individual)
-        for i in range(len(ind_list)):
-            if random.random() < adaptive_rate:
-                shift = random.uniform(-1, 1)  # simple shift
-                ind_list[i] += shift
-                # enforce bounds
-                ind_list[i] = max(min(ind_list[i], self.upper_bound), self.lower_bound)
-        return tuple(ind_list)
-
-
-if __name__ == "__main__":
-    print("GA Clustering code demo")
-
-    # Cargar el dataset
-    file_path = "./Mall_Customers.csv"  
-    df = pd.read_csv(file_path)
-
-    # Eliminar la columna ID y la etiqueta (Gender)
-    df_clustering = df.iloc[:, 2:] 
-
-    # Nombres de las columnas
-    df_clustering.columns = ["Age", "Annual_Income", "Spending_Score"]
-
-    # Verificar los datos
-    print(df_clustering.head())
-
-
-    # Example usage for 2D data, real-coded representation
-    ga_cluster = GeneticAlgorithm(
-        pop_size=50, # Tamaño de la poblacion, cantidad de individuos que se generan en cada generacion
-        generations=50, #Numero de generaciones hasta que se detiene el algoritmo
-        mutation_rate=0.05, #Probabilidad de mutacion, un valor alto introduce diversidad
-        patience=8,  #Minimo de iteraciones para poder parar en caso de que el MSE no mejorara
-        min_delta=0.01, #Minimo de mejora en el MSE para poder parar, si mejora en este valor se reinciia el contador de paciencia
-    )
-    ml_task = MachineLearningTask(
-        data=df_clustering, #Datos a utilizar
-        k=2
-    )
-    best_solution = ga_cluster.run(ml_task)
+    def mutation(self, individual, mutation_rate):
+        """
+        Muta el individuo in-place o crea uno nuevo.
+        Ejemplos: desplazamiento aleatorio de parámetros, flip de bits, etc.
+        """
+        pass
