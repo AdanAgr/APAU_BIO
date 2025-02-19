@@ -2,6 +2,8 @@ import random
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D 
+
 import sklearn
 
 class GeneticAlgorithm:
@@ -186,39 +188,22 @@ class GeneticAlgorithm:
 
 
     def plot_clusters(self, best_solution, ml_task):
-        """
-        Para datos en 2D: mostrar los puntos coloreados por cluster y los centros finales.
-        """
-        if ml_task.dim != 2:
-            print("Reduciendo dimensiones a 2D con PCA...")
-            from sklearn.decomposition import PCA
-            pca = PCA(n_components=2)
-            data_2d = pca.fit_transform(ml_task.data)
-            centers_reshaped = np.array(best_solution).reshape(ml_task.k, ml_task.dim)
-            centers_2d = pca.transform(centers_reshaped)
-        else:
-            data_2d = ml_task.data
-            centers_2d = np.array(best_solution).reshape(ml_task.k, ml_task.dim)
-        
-        # Asignar cada punto al centro más cercano
-        dists = np.linalg.norm(data_2d[:, None, :] - centers_2d[None, :, :], axis=2)
+        data = ml_task.data
+        centers = np.array(best_solution).reshape(ml_task.k, ml_task.dim)
+
+        dists = np.linalg.norm(data[:, None, :] - centers[None, :, :], axis=2)
         cluster_assignments = np.argmin(dists, axis=1)
-        
-        # Graficar los puntos coloreados según su cluster asignado
+
         plt.figure(figsize=(8, 6))
         for i in range(ml_task.k):
-            plt.scatter(data_2d[cluster_assignments == i, 0],
-                        data_2d[cluster_assignments == i, 1], label=f'Cluster {i}')
-        
-        # Graficar los centros de cluster
-        plt.scatter(centers_2d[:, 0], centers_2d[:, 1], c='red', marker='x', s=200, label='Centros')
-        plt.xlabel('Dim 1')
-        plt.ylabel('Dim 2')
-        plt.legend()
+            plt.scatter(data[cluster_assignments == i, 0], data[cluster_assignments == i, 1], label=f'Cluster {i}')
+
+        plt.scatter(centers[:, 0], centers[:, 1], c='red', marker='x', s=200, label='Centroides')
+        plt.xlabel('Annual Income')
+        plt.ylabel('Spending Score')
         plt.title('Clustering con Algoritmo Genético')
+        plt.legend()
         plt.show()
-
-
 ### `machine_learning_task.py` (Esqueleto de Tarea de ML Especializada)
 
 
@@ -324,28 +309,38 @@ class MachineLearningTask:
 
 if __name__ == "__main__":
     print("GA Clustering code demo")
-
-    # Cargar el dataset
+# Cargar el dataset
     file_path = "./Mall_Customers.csv"  
     df = pd.read_csv(file_path)
 
-    # Eliminar la columna ID y la etiqueta (Gender)
-    df_clustering = df.iloc[:, 2:] 
+    # Eliminar la columna ID
+    df_clustering = df.iloc[:, 1:]  # Ahora incluye Gender
 
-    # Nombres de las columnas
-    df_clustering.columns = ["Age", "Annual_Income", "Spending_Score"]
+    # Convertir Gender de texto a numérico usando un bucle
+    for i in range(len(df_clustering)):
+        if df_clustering.loc[i, "Gender"] == "Female":
+            df_clustering.loc[i, "Gender"] = 0
+        elif df_clustering.loc[i, "Gender"] == "Male":
+            df_clustering.loc[i, "Gender"] = 1
+
+    # Convertir la columna Gender a tipo numérico (int)
+    df_clustering["Gender"] = df_clustering["Gender"].astype(int)
+
+    # Renombrar las columnas
+    df_clustering.columns = ["Gender", "Age", "Annual_Income", "Spending_Score"]
 
     # Verificar los datos
     print(df_clustering.head())
 
 
+
     # Example usage for 2D data, real-coded representation
     ga_cluster = GeneticAlgorithm(
-        pop_size=50, # Tamaño de la poblacion, cantidad de individuos que se generan en cada generacion
-        generations=50, #Numero de generaciones hasta que se detiene el algoritmo
-        mutation_rate=0.05, #Probabilidad de mutacion, un valor alto introduce diversidad
-        patience=8,  #Minimo de iteraciones para poder parar en caso de que el MSE no mejorara
-        min_delta=0.01, #Minimo de mejora en el MSE para poder parar, si mejora en este valor se reinciia el contador de paciencia
+        pop_size=30, # Tamaño de la poblacion, cantidad de individuos que se generan en cada generacion
+        generations=100, #Numero de generaciones hasta que se detiene el algoritmo
+        mutation_rate=0.8, #Probabilidad de mutacion, un valor alto introduce diversidad
+        patience=7,  #Minimo de iteraciones para poder parar en caso de que el MSE no mejorara
+        min_delta=0.003, #Minimo de mejora en el MSE para poder parar, si mejora en este valor se reinciia el contador de paciencia
     )
     ml_task = MachineLearningTask(
         data=df_clustering, #Datos a utilizar
