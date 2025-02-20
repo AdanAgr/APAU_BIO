@@ -164,20 +164,19 @@ class AntColonyClustering:
         plt.ylabel("Feature 2")
         plt.legend()
         plt.show()
-
+        
 
 # ------------------------------------------------------------------------------
 if __name__ == "__main__":
     print("=== Ant Colony Optimization for Clustering on NBA Dataset ===")
 
     # Cargar dataset desde archivo CSV
-    file_path = "all_seasons.csv"  # Cambia esto por la ruta de tu archivo
+    file_path = "Mall_Customers.csv"  # Cambia esto por la ruta de tu archivo
     data = pd.read_csv(file_path)
 
     # Seleccionar columnas relevantes para el análisis
     numeric_columns = [
-        "age", "player_height", "player_weight", "gp", "pts", "reb", "ast", 
-        "net_rating", "oreb_pct", "dreb_pct", "usg_pct", "ts_pct", "ast_pct"
+        "Annual Income (k$)", "Spending Score (1-100)"
     ]
 
     # Filtrar y normalizar los datos numéricos
@@ -197,7 +196,7 @@ if __name__ == "__main__":
         evaporation_rate=0.3,
         pheromone_constant=100,
         generations=20,
-        num_clusters=3,  # Cambiar si necesitas otro número de clusters
+        num_clusters=4,  # Cambiar si necesitas otro número de clusters
         seed=42
     )
 
@@ -216,8 +215,3 @@ if __name__ == "__main__":
     plt.ylabel("Feature 2 (Scaled)")
     plt.colorbar(label="Cluster")
     plt.show()
-
-    # Guardar resultados en un nuevo archivo CSV
-    output_file = "clustered_dataset.csv"
-    data.to_csv(output_file, index=False)
-    print(f"Clustered data saved to {output_file}")
