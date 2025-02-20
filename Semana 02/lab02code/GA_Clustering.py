@@ -260,7 +260,7 @@ if __name__ == "__main__":
     )
 
     # Machine Learning Task
-    ml_task = MachineLearningTask(data=df_clustering[['Annual_Income', 'Spending_Score']].values, k=3)
+    ml_task = MachineLearningTask(data=df_clustering[['Age', 'Spending_Score']].values, k=5)
 
     # Ejecutar el algoritmo genético
     best_solution = ga.run(ml_task)
