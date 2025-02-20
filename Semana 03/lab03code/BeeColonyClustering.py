@@ -20,9 +20,9 @@ class BeeColonyClustering:
         self,
         data,
         num_clusters=3,
-        num_bees=30,
-        num_employed=15,
-        num_scouts=5,
+        num_bees=30, # Cantidad de abejas en la colmena
+        num_employed=15, # Exploran zonas cercanas a las soluciones actuales (Para mejorar la solucion) [Busqueda Local]
+        num_scouts=5, #Exploran zonas alejadas de las soluciones actuales (Para buscar la solucion optima) [Busqueda Global/Aleatoria]
         generations=50,
         top_solutions=5,  # number of best solutions to keep for final K-Means
         seed=None
@@ -81,7 +81,7 @@ class BeeColonyClustering:
 
     def update_positions(self):
         """
-        Core BCO steps:
+        Core BCO steps: Bee Colony Optimization.
          1) Employed bees refine their solutions.
          2) Onlooker bees choose top solutions and refine them.
          3) Scout bees explore random positions near best solution.
