@@ -18,12 +18,12 @@ class AntColonyClustering:
     def __init__(
         self,
         distance_matrix,
-        num_ants=10,
+        num_ants=10,            # numero de hormigas en cada generacion
         alpha=1.0,             # Importance of pheromone
-        beta=2.0,              # Importance of similarity
-        evaporation_rate=0.5,  # Pheromone evaporation
-        pheromone_constant=100,# Q in ACO
-        generations=50,
+        beta=2.0,              # Importance of similarity (Heuristica)
+        evaporation_rate=0.5,  # Pheromone evaporation 
+        pheromone_constant=100,# Q in ACO cantidad de feromonas dejadas por las hormigas
+        generations=50,   # Numero de iteraciones
         num_clusters=3,
         seed=None
     ):
