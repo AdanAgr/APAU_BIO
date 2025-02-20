@@ -34,7 +34,7 @@ class Particle:
             self.best_position = np.copy(self.position)
 
 # PSO for clustering
-class PSO:
+class PSO: #Particule Swarm Optimization
     def __init__(self, num_clusters, data, num_particles=30, max_iters=100):
         self.num_clusters = num_clusters
         self.data = data
