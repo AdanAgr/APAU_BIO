@@ -162,13 +162,26 @@ class AntColonyClustering:
         plt.title("ACO-Based Clustering")
         plt.xlabel("Feature 1")
         plt.ylabel("Feature 2")
+
+        # Add hyperparameters to plot
+        hyperparameters = (
+            f"Num Ants: {self.num_ants}\n"
+            f"Alpha: {self.alpha}\n"
+            f"Beta: {self.beta}\n"
+            f"Evaporation Rate: {self.evaporation_rate}\n"
+            f"Pheromone Constant: {self.Q}\n"
+            f"Generations: {self.generations}\n"
+            f"Num Clusters: {self.num_clusters}"
+        )
+        plt.gcf().text(0.95, 0.05, hyperparameters, fontsize=12, ha='right', bbox=dict(facecolor='red', alpha=0.5))
+
         plt.legend()
         plt.show()
         
 
 # ------------------------------------------------------------------------------
-if __name__ == "__main__":
-    print("=== Ant Colony Optimization for Clustering on NBA Dataset ===")
+def main():
+    print("=== Ant Colony Optimization for Clustering ===\n")
 
     # Cargar dataset desde archivo CSV
     file_path = "Mall_Customers.csv"  # Cambia esto por la ruta de tu archivo
@@ -208,10 +221,7 @@ if __name__ == "__main__":
     data["cluster"] = cluster_labels
 
     # Visualizar resultados
-    plt.figure(figsize=(8, 6))
-    plt.scatter(scaled_data[:, 0], scaled_data[:, 1], c=cluster_labels, cmap="tab10", edgecolors="k")
-    plt.title("ACO Clustering Results")
-    plt.xlabel("Feature 1 (Scaled)")
-    plt.ylabel("Feature 2 (Scaled)")
-    plt.colorbar(label="Cluster")
-    plt.show()
+    aco_clustering.plot_clusters(scaled_data)
+
+if __name__ == "__main__":
+    main()
