@@ -6,6 +6,7 @@ from scipy.spatial.distance import cdist
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from scipy.stats import mode
+from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
 
 class BeeColonyClustering:
 
@@ -164,7 +165,7 @@ def main():
     # Run BCO clustering
     bco_clustering = BeeColonyClustering(
         data=scaled_data,
-        num_clusters=4,
+        num_clusters=5,
         num_bees=30,
         num_employed=15,
         num_scouts=5,
@@ -176,6 +177,22 @@ def main():
     bco_clustering.run()
     # Plot results
     bco_clustering.plot_clusters(scaled_data)
+
+    ### Evaluation Metrics
+    labels = bco_clustering.assign_test_data(scaled_data)
+
+    # Índice de Silhouette
+    silhouette = silhouette_score(scaled_data, labels)
+    print(f"Silhouette Score: {silhouette:.4f}")
+
+    # Índice de Davis-Bouldin
+    davies_bouldin = davies_bouldin_score(scaled_data, labels)
+    print(f"Davies-Bouldin Score: {davies_bouldin:.4f}")
+
+    # Índice de Calinski-Harabasz
+    calinski_harabasz = calinski_harabasz_score(scaled_data, labels)
+    print(f"Calinski-Harabasz Score: {calinski_harabasz:.4f}")
+
 
 if __name__ == "__main__":
     main()

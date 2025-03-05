@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
 
 # Cargar el dataset
 file_path = "./Mall_Customers.csv"  
@@ -24,7 +25,7 @@ df_clustering["Gender"] = df_clustering["Gender"].astype(int)
 df_clustering.columns = ["Gender", "Age", "Annual_Income", "Spending_Score"]
 
 # Aplicar K-means
-k = 3  # Número de clústeres a elegir
+k = 5  # Número de clústeres a elegir
 kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
 kmeans.fit(df_clustering)
 
@@ -40,3 +41,15 @@ plt.ylabel("Spending Score")
 plt.title("Clustering con K-Means")
 plt.legend()
 plt.show()
+
+# Coeficiente de Silhouette
+silhouette_avg = silhouette_score(df_clustering, kmeans.labels_)
+print("Silhouette Score:", silhouette_avg)
+
+# Índice de Davies-Bouldin
+db_score = davies_bouldin_score(df_clustering, kmeans.labels_)
+print("Davies-Bouldin Score:", db_score)
+
+# Índice de Calinski-Harabasz
+ch_score = calinski_harabasz_score(df_clustering, kmeans.labels_)
+print("Calinski-Harabasz Score:", ch_score)

@@ -7,6 +7,8 @@ from scipy.spatial.distance import cdist
 from sklearn.cluster import AgglomerativeClustering
 from scipy.stats import mode
 from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import silhouette_score, davies_bouldin_score
+
 
 class AntColonyClustering:
     """
@@ -209,7 +211,7 @@ def main():
         evaporation_rate=0.3,
         pheromone_constant=100,
         generations=20,
-        num_clusters=4,  # Cambiar si necesitas otro número de clusters
+        num_clusters=5,  # Cambiar si necesitas otro número de clusters
         seed=42
     )
 
@@ -222,6 +224,16 @@ def main():
 
     # Visualizar resultados
     aco_clustering.plot_clusters(scaled_data)
+
+    ### Evaluation Metrics
+    # Índice de Silhouette
+    silhouette = silhouette_score(scaled_data, cluster_labels)
+    print(f"Silhouette Score: {silhouette:.4f}")
+
+    # Índice de Davis-Bouldin
+    davies_bouldin = davies_bouldin_score(scaled_data, cluster_labels)
+    print(f"Davies-Bouldin Score: {davies_bouldin:.4f}")
+    
 
 if __name__ == "__main__":
     main()
