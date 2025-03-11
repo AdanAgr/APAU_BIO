@@ -284,7 +284,7 @@ if __name__ == "__main__":
     # 1) Generate
     anomaly_intervals = [(100,120), (250,270)]
     T, X, y, window_starts = load_timeseries_from_csv("./archive/artificialNoAnomaly/artificialNoAnomaly/art_flatline.csv")
-    
+
     # 2) Plot
     plot_timeseries_with_windows(
         T, 
@@ -294,6 +294,7 @@ if __name__ == "__main__":
         y=y,
         title="Single Time Series with Marked Windows & Anomalies"
     )
+
 
 
     # 2) Split into train (only normal) + test
@@ -337,19 +338,9 @@ if __name__ == "__main__":
     plt.show()
 
     # 6) Final Evaluation
-    T_anomaly, X_anomaly, y_anomaly, window_starts_anomaly = load_timeseries_from_csv("./archive/artificialWithAnomaly/artificialWithAnomaly/art_daily_flatmiddle.csv")
-    
-    plot_timeseries_with_windows(
-        T_anomaly, 
-        anomaly_intervals,
-        window_size=100,
-        window_starts=window_starts_anomaly,
-        y=y_anomaly,
-        title="Single Time Series with Marked Windows & Anomalies CON ANOMALIAS"
-    )
-    y_pred_anomaly = ais.predict(X_anomaly)
+    y_pred = ais.predict(X_test)
     print("Confusion Matrix (Test):")
-    cm = confusion_matrix(y_anomaly, y_pred_anomaly)
+    cm = confusion_matrix(y_test, y_pred)
     print(cm)
     print("\nClassification Report:")
-    print(classification_report(y_anomaly, y_pred_anomaly, target_names=["Normal","Anomaly"]))
+    print(classification_report(y_test, y_pred, target_names=["Normal","Anomaly"]))

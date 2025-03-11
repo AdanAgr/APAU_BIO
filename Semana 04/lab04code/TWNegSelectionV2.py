@@ -210,6 +210,7 @@ class NegativeSelectionVectors:
 # (C) Demo
 ##############################################################################
 if __name__ == "__main__":
+    
     # 1) Generate
     anomaly_intervals = [(100,120), (250,270)]
     T, X, y, window_starts = load_timeseries_from_csv("./archive/artificialWithAnomaly/artificialWithAnomaly/art_daily_flatmiddle.csv",)
