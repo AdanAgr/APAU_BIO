@@ -210,7 +210,7 @@ class NegativeSelectionVectors:
 # (C) Demo
 ##############################################################################
 if __name__ == "__main__":
-    
+
     # 1) Generate
     anomaly_intervals = [(100,120), (250,270)]
     T, X, y, window_starts = load_timeseries_from_csv("./archive/artificialWithAnomaly/artificialWithAnomaly/art_daily_flatmiddle.csv",)
@@ -236,7 +236,7 @@ if __name__ == "__main__":
 
     nsa = NegativeSelectionVectors(
         n_detectors=30,
-        detector_radius=0.8,
+        detector_radius=1,
         n_generations=10,
         n_new=10,
         random_seed=123
@@ -261,4 +261,4 @@ if __name__ == "__main__":
     cm = confusion_matrix(y_test, y_pred)
     print(cm)
     print("\nClassification Report:")
-    print(classification_report(y_test, y_pred, target_names=["Normal","Anomaly"], zero_division=0))
+    print(classification_report(y_test, y_pred, target_names=["Normal","Anomaly"],labels=[0,1], zero_division=0))

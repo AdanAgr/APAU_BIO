@@ -283,7 +283,7 @@ if __name__ == "__main__":
 
     # 1) Generate
     anomaly_intervals = [(100,120), (250,270)]
-    T, X, y, window_starts = load_timeseries_from_csv("./archive/artificialNoAnomaly/artificialNoAnomaly/art_flatline.csv")
+    T, X, y, window_starts = load_timeseries_from_csv("./archive/artificialWithAnomaly/artificialWithAnomaly/art_daily_flatmiddle.csv")
 
     # 2) Plot
     plot_timeseries_with_windows(
@@ -343,4 +343,4 @@ if __name__ == "__main__":
     cm = confusion_matrix(y_test, y_pred)
     print(cm)
     print("\nClassification Report:")
-    print(classification_report(y_test, y_pred, target_names=["Normal","Anomaly"]))
+    print(classification_report(y_test, y_pred, target_names=["Normal","Anomaly"], labels=[0,1], zero_division=0))
