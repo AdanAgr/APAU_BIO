@@ -213,7 +213,7 @@ if __name__ == "__main__":
 
     # 1) Generate
     anomaly_intervals = [(100,120), (250,270)]
-    T, X, y, window_starts = load_timeseries_from_csv("./archive/artificialWithAnomaly/artificialWithAnomaly/art_daily_flatmiddle.csv",)
+    T, X, y, window_starts = load_timeseries_from_csv("./archive/artificialWithAnomaly/artificialWithAnomaly/art_daily_flatmiddle.csv")
     # 2) Plot
     plot_timeseries_with_windows(
         T, 
@@ -223,7 +223,6 @@ if __name__ == "__main__":
         y=y,
         title="Single Time Series with Marked Windows & Anomalies"
     )
-
 
     # 2) Split into train (only normal) + test
     X_train, X_test, y_train, y_test = train_test_split(X, y,
