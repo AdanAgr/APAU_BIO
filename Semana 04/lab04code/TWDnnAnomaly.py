@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd  # Importar pandas para leer el CSV
 from sklearn.metrics import confusion_matrix, classification_report
 from sklearn.model_selection import train_test_split
 from sklearn.decomposition import PCA
@@ -9,32 +10,18 @@ import torch.nn as nn
 import torch.optim as optim
 
 ##############################################################################
-# (A) Generate synthetic time-series windows (normal vs. anomalies)
+# (A) Load time-series data from CSV (normal vs. anomalies)
 ##############################################################################
 
-def generate_single_timeseries_with_anomalies(
-    n_points=400,
-    anomaly_intervals=[(100, 120), (250, 270)],
-    window_size=20,
-    step=20,
-    random_seed=42
-):
-    np.random.seed(random_seed)
+def load_timeseries_from_csv(filepath, window_size=20, step=20):
+    data = pd.read_csv(filepath)
+    T = data['value'].values  # Asumiendo que la columna de interés se llama 'value'
+    
+    # Definir intervalos de anomalías basados en el CSV
+    anomaly_intervals = [(100, 120), (250, 270)]  # Ajustar según sea necesario
 
-    # 1) Build base normal wave
-    t_axis = np.linspace(0, 4*np.pi, n_points)
-    base_amp = 1.0
-    wave = base_amp * np.sin(t_axis)
-    noise = 0.1 * np.random.randn(n_points)
-    T = wave + noise
-
-    # 2) Insert anomalies
-    for (start_idx, end_idx) in anomaly_intervals:
-        # triple amplitude + bigger noise
-        T[start_idx:end_idx] = 3.0 * base_amp * np.sin(t_axis[start_idx:end_idx])
-        T[start_idx:end_idx] += 0.3 * np.random.randn(end_idx - start_idx)
-
-    # 3) Slice into windows
+    # Slice into windows
+    n_points = len(T)
     window_starts = range(0, n_points - window_size + 1, step)
     X, y = [], []
     for ws in window_starts:
@@ -52,7 +39,6 @@ def generate_single_timeseries_with_anomalies(
     X = np.array(X)
     y = np.array(y, dtype=int)
     return T, X, y, list(window_starts)
-
 
 def plot_timeseries_with_windows(
     T,
@@ -159,7 +145,10 @@ class DNNAnomalyDetector(nn.Module):
                 
                 epoch_loss += loss.item()
 
-            avg_loss = epoch_loss / len(dataloader)
+            if len(dataloader) > 0:
+                avg_loss = epoch_loss / len(dataloader)
+            else:
+                avg_loss = float('inf')  # or some other default value
             self.train_loss_history.append(avg_loss)
 
             # Optional: Evaluate on validation
@@ -200,24 +189,22 @@ class DNNAnomalyDetector(nn.Module):
 ##############################################################################
 if __name__ == "__main__":
 
-    # 1) Generate data
-    anomaly_intervals = [(100,120), (250,270)]
-    T, X, y, window_starts = generate_single_timeseries_with_anomalies(
-        n_points=400,
-        anomaly_intervals=anomaly_intervals,
+    # 1) Load data from CSV
+    csv_filepath = "./archive/artificialWithAnomaly/artificialWithAnomaly/art_daily_flatmiddle.csv"
+    T, X, y, window_starts = load_timeseries_from_csv(
+        filepath=csv_filepath,
         window_size=100,
-        step=20,
-        random_seed=42
+        step=20
     )
 
     # 2) Visualize data and windows
     plot_timeseries_with_windows(
         T,
-        anomaly_intervals,
+        anomaly_intervals=[(100, 120), (250, 270)],  # Ajustar según sea necesario
         window_size=100,
         window_starts=window_starts,
         y=y,
-        title="Single Time Series with Marked Windows & Anomalies"
+        title="Time Series with Marked Windows & Anomalies"
     )
 
     # 3) Train-test split
@@ -245,7 +232,7 @@ if __name__ == "__main__":
     print(cm)
 
     print("\nClassification Report (Test):")
-    print(classification_report(y_test, y_pred, target_names=["Normal", "Anomaly"]))
+    print(classification_report(y_test, y_pred, target_names=["Normal", "Anomaly"], zero_division=0))
 
     # 6) Plot training loss
     plt.figure()
