@@ -457,5 +457,5 @@ class ClonalSelectionAIS:
         print(classification_report(y_test, y_pred, target_names=["Normal","Anomaly"]))
 
 if __name__ == "__main__":
-    ClonalSelectionAIS.main1()
-    ClonalSelectionAIS.main2()
+    ClonalSelectionAIS.main1() # DatasetLoader from csv
+    ClonalSelectionAIS.main2() # Synthetic data

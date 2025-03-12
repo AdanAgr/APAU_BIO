@@ -369,6 +369,6 @@ class DNNAnomalyDetector(nn.Module):
         plt.legend()
         plt.show()
 
-if __name__ == "__main__":
-    DNNAnomalyDetector.main1()
-    DNNAnomalyDetector.main2()
+if __name__ == "__main__": 
+    DNNAnomalyDetector.main1() # DatasetLoader from csv
+    DNNAnomalyDetector.main2() # Synthetic data
