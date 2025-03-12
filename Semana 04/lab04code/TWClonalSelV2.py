@@ -454,7 +454,7 @@ class ClonalSelectionAIS:
         cm = confusion_matrix(y_test, y_pred)
         print(cm)
         print("\nClassification Report:")
-        print(classification_report(y_test, y_pred, target_names=["Normal","Anomaly"]))
+        print(classification_report(y_test, y_pred, target_names=["Normal","Anomaly"],zero_division=0))
 
 if __name__ == "__main__":
     ClonalSelectionAIS.main1() # DatasetLoader from csv

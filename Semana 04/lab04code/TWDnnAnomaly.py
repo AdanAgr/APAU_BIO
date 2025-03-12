@@ -345,7 +345,7 @@ class DNNAnomalyDetector(nn.Module):
         print(cm)
 
         print("\nClassification Report (Test):")
-        print(classification_report(y_test, y_pred, target_names=["Normal", "Anomaly"]))
+        print(classification_report(y_test, y_pred, target_names=["Normal", "Anomaly"],zero_division=0))
 
         # 6) Plot training loss
         plt.figure()

@@ -124,10 +124,10 @@ class NegativeSelectionVectors:
     The rest detect anomalies.
     """
     def __init__(self,
-                 n_detectors=30,
+                 n_detectors=100,
                  detector_radius=0.5,
                  n_generations=10,
-                 n_new=10,
+                 n_new=50,
                  random_seed=123):
         self.n_detectors = n_detectors
         self.detector_radius = detector_radius
@@ -274,10 +274,10 @@ class NegativeSelectionVectors:
         pca = PCA(n_components=2, random_state=777).fit(X)
 
         nsa = NegativeSelectionVectors(
-            n_detectors=30,
-            detector_radius=1,
-            n_generations=10,
-            n_new=10,
+            n_detectors=100,
+            detector_radius=2,
+            n_generations=5,
+            n_new=50,
             random_seed=123
         )
         nsa.fit(X_train_normal, X_val=X_test, y_val=y_test, pca_2d=pca)
@@ -336,10 +336,10 @@ class NegativeSelectionVectors:
         pca = PCA(n_components=2, random_state=777).fit(X)
 
         nsa = NegativeSelectionVectors(
-            n_detectors=30,
-            detector_radius=0.8,
-            n_generations=10,
-            n_new=10,
+            n_detectors=100,
+            detector_radius=2,
+            n_generations=5,
+            n_new=50,
             random_seed=123
         )
         nsa.fit(X_train_normal, X_val=X_test, y_val=y_test, pca_2d=pca)
@@ -362,7 +362,7 @@ class NegativeSelectionVectors:
         cm = confusion_matrix(y_test, y_pred)
         print(cm)
         print("\nClassification Report:")
-        print(classification_report(y_test, y_pred, target_names=["Normal","Anomaly"]))
+        print(classification_report(y_test, y_pred, target_names=["Normal","Anomaly"],zero_division=0))
 
 if __name__ == "__main__":
     NegativeSelectionVectors.main1() # DatasetLoader from csv
