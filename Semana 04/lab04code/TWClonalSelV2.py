@@ -10,6 +10,47 @@ import pandas as pd
 # (A) Generate synthetic time-series windows (normal vs. anomalies)
 ##############################################################################
 
+def generate_single_timeseries_with_anomalies(
+    n_points=400,
+    anomaly_intervals=[(100, 120), (250, 270)],
+    window_size=20,
+    step=20,
+    random_seed=42
+):
+    np.random.seed(random_seed)
+
+    # 1) Build base normal wave
+    t_axis = np.linspace(0, 4*np.pi, n_points)
+    base_amp = 1.0
+    wave = base_amp * np.sin(t_axis)
+    noise = 0.1 * np.random.randn(n_points)
+    T = wave + noise
+
+    # 2) Insert anomalies
+    for (start_idx, end_idx) in anomaly_intervals:
+        # triple amplitude + bigger noise
+        T[start_idx:end_idx] = 3.0 * base_amp * np.sin(t_axis[start_idx:end_idx])
+        T[start_idx:end_idx] += 0.3 * np.random.randn(end_idx - start_idx)
+
+    # 3) Slice into windows
+    window_starts = range(0, n_points - window_size + 1, step)
+    X, y = [], []
+    for ws in window_starts:
+        we = ws + window_size
+        window_data = T[ws:we]
+        # label=1 if overlaps any anomaly interval
+        label = 0
+        for (a_start, a_end) in anomaly_intervals:
+            if not (we <= a_start or ws >= a_end):
+                label = 1
+                break
+        X.append(window_data)
+        y.append(label)
+
+    X = np.array(X)
+    y = np.array(y, dtype=int)
+    return T, X, y, list(window_starts)
+
 
 def load_timeseries_from_csv(filepath, window_size=20, step=20):
     data = pd.read_csv(filepath)
@@ -278,69 +319,143 @@ class ClonalSelectionAIS:
 ##############################################################################
 # (C) Demo: Train & Evaluate
 ##############################################################################
+    def main1():
+
+
+        # 1) Generate
+        anomaly_intervals = [(100,120), (250,270)]
+        T, X, y, window_starts = load_timeseries_from_csv("./archive/artificialWithAnomaly/artificialWithAnomaly/art_daily_flatmiddle.csv")
+
+        # 2) Plot
+        plot_timeseries_with_windows(
+            T, 
+            anomaly_intervals,
+            window_size=100,
+            window_starts=window_starts,
+            y=y,
+            title="Single Time Series with Marked Windows & Anomalies"
+        )
+
+
+
+        # 2) Split into train (only normal) + test
+        X_train, X_test, y_train, y_test = train_test_split(X, y,
+                                                            test_size=0.3,
+                                                            random_state=999)
+        X_train_normal = X_train[y_train==0]
+
+        # For 2D plotting, we'll use PCA on the entire dataset
+        pca = PCA(n_components=2, random_state=777)
+        pca.fit(X)  # or fit on X_train_normal
+
+        # 3) Create Clonal Selection AIS
+        ais = ClonalSelectionAIS(
+            pop_size=30,
+            clone_factor=5,
+            beta=1.0,
+            mutation_std=0.1,
+            max_gens=10,
+            diversity_rate=0.1,
+            random_seed=123
+        )
+
+        # 4) Fit on normal data
+        ais.fit(X_train_normal, 
+                X_val=X_test, 
+                y_val=y_test, 
+                pca_2d=pca)
+
+        # Turn off interactive & show final
+        plt.ioff()
+        plt.show()
+
+        # 5) Plot final loss history
+        plt.figure()
+        plt.plot(ais.loss_history_, marker='o')
+        plt.title("Clonal AIS: Loss History")
+        plt.xlabel("Generation")
+        plt.ylabel("Loss (Test Misclassification)")
+        plt.grid(True)
+        plt.show()
+
+        # 6) Final Evaluation
+        y_pred = ais.predict(X_test)
+        print("Confusion Matrix (Test):")
+        cm = confusion_matrix(y_test, y_pred)
+        print(cm)
+        print("\nClassification Report:")
+        print(classification_report(y_test, y_pred, target_names=["Normal","Anomaly"], labels=[0,1], zero_division=0))
+    def main2():
+
+        # 1) Generate
+        anomaly_intervals = [(100,120), (250,270)]
+        T, X, y, window_starts = generate_single_timeseries_with_anomalies(
+            n_points=400,
+            anomaly_intervals=anomaly_intervals,
+            window_size=100,
+            step=20,
+            random_seed=42
+        )
+        # 2) Plot
+        plot_timeseries_with_windows(
+            T, 
+            anomaly_intervals,
+            window_size=100,
+            window_starts=window_starts,
+            y=y,
+            title="Single Time Series with Marked Windows & Anomalies"
+        )
+
+
+
+        # 2) Split into train (only normal) + test
+        X_train, X_test, y_train, y_test = train_test_split(X, y,
+                                                            test_size=0.3,
+                                                            random_state=999)
+        X_train_normal = X_train[y_train==0]
+
+        # For 2D plotting, we'll use PCA on the entire dataset
+        pca = PCA(n_components=2, random_state=777)
+        pca.fit(X)  # or fit on X_train_normal
+
+        # 3) Create Clonal Selection AIS
+        ais = ClonalSelectionAIS(
+            pop_size=30,
+            clone_factor=5,
+            beta=1.0,
+            mutation_std=0.1,
+            max_gens=10,
+            diversity_rate=0.1,
+            random_seed=123
+        )
+
+        # 4) Fit on normal data
+        ais.fit(X_train_normal, 
+                X_val=X_test, 
+                y_val=y_test, 
+                pca_2d=pca)
+
+        # Turn off interactive & show final
+        plt.ioff()
+        plt.show()
+
+        # 5) Plot final loss history
+        plt.figure()
+        plt.plot(ais.loss_history_, marker='o')
+        plt.title("Clonal AIS: Loss History")
+        plt.xlabel("Generation")
+        plt.ylabel("Loss (Test Misclassification)")
+        plt.grid(True)
+        plt.show()
+
+        # 6) Final Evaluation
+        y_pred = ais.predict(X_test)
+        print("Confusion Matrix (Test):")
+        cm = confusion_matrix(y_test, y_pred)
+        print(cm)
+        print("\nClassification Report:")
+        print(classification_report(y_test, y_pred, target_names=["Normal","Anomaly"]))
+
 if __name__ == "__main__":
-
-
-    # 1) Generate
-    anomaly_intervals = [(100,120), (250,270)]
-    T, X, y, window_starts = load_timeseries_from_csv("./archive/artificialWithAnomaly/artificialWithAnomaly/art_daily_flatmiddle.csv")
-
-    # 2) Plot
-    plot_timeseries_with_windows(
-        T, 
-        anomaly_intervals,
-        window_size=100,
-        window_starts=window_starts,
-        y=y,
-        title="Single Time Series with Marked Windows & Anomalies"
-    )
-
-
-
-    # 2) Split into train (only normal) + test
-    X_train, X_test, y_train, y_test = train_test_split(X, y,
-                                                        test_size=0.3,
-                                                        random_state=999)
-    X_train_normal = X_train[y_train==0]
-
-    # For 2D plotting, we'll use PCA on the entire dataset
-    pca = PCA(n_components=2, random_state=777)
-    pca.fit(X)  # or fit on X_train_normal
-
-    # 3) Create Clonal Selection AIS
-    ais = ClonalSelectionAIS(
-        pop_size=30,
-        clone_factor=5,
-        beta=1.0,
-        mutation_std=0.1,
-        max_gens=10,
-        diversity_rate=0.1,
-        random_seed=123
-    )
-
-    # 4) Fit on normal data
-    ais.fit(X_train_normal, 
-            X_val=X_test, 
-            y_val=y_test, 
-            pca_2d=pca)
-
-    # Turn off interactive & show final
-    plt.ioff()
-    plt.show()
-
-    # 5) Plot final loss history
-    plt.figure()
-    plt.plot(ais.loss_history_, marker='o')
-    plt.title("Clonal AIS: Loss History")
-    plt.xlabel("Generation")
-    plt.ylabel("Loss (Test Misclassification)")
-    plt.grid(True)
-    plt.show()
-
-    # 6) Final Evaluation
-    y_pred = ais.predict(X_test)
-    print("Confusion Matrix (Test):")
-    cm = confusion_matrix(y_test, y_pred)
-    print(cm)
-    print("\nClassification Report:")
-    print(classification_report(y_test, y_pred, target_names=["Normal","Anomaly"], labels=[0,1], zero_division=0))
+    #ClonalSelectionAIS.main1()
+    ClonalSelectionAIS.main2()
