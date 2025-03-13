@@ -68,3 +68,7 @@ def main():
     predictions = mlp.predict(X)
     for i in range(len(X)):
         print(f"Input: {X[i].tolist()}, Predicted: {predictions[i].item()}, Expected: {y[i].item()}")
+
+
+if __name__ == "__main__":
+    main()

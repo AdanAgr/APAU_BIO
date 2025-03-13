@@ -96,3 +96,6 @@ def main():
     predictions = mlp.predict(X)
     for i in range(len(X)):
         print(f"Input: {X[i]}, Predicted: {predictions[i]}, Expected: {y[i][0]}")
+
+if __name__ == "__main__":
+    main()
