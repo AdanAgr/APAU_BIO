@@ -136,7 +136,7 @@ class DQNTrainer:
             policy='MlpPolicy',
             env=self.env,
             verbose=1,
-            tensorboard_log=None
+            tensorboard_log="./logs/"
         )
 
         callback = RewardTrackingCallback()
@@ -144,7 +144,6 @@ class DQNTrainer:
         self.model.save("dqn_custom_lunar_lander")
         print("DQN model saved to dqn_custom_lunar_lander.zip")
         self.env.close()
-
 
     def evaluate(self, deterministic=True, episodes=5):
         """
@@ -200,9 +199,10 @@ def generate_trajectory(env, policy):
     trajectory = []
     done = False
     while not done:
-        state_tensor = torch.tensor(state, dtype=torch.float32).unsqueeze(0)
-        with torch.no_grad():
-            action_probs = policy(state_tensor).squeeze(0)  # shape (4,)
+        state_tensor = torch.tensor(state, dtype=torch.float32, requires_grad=True).unsqueeze(0)
+        action_probs = policy(state_tensor).squeeze(0)  # shape (4,)
+        
+        # Generamos la distribución de probabilidad y calculamos el logaritmo
         dist = torch.distributions.Categorical(action_probs)
         action = dist.sample()
         log_prob = dist.log_prob(action)
@@ -330,56 +330,45 @@ class REINFORCETrainer:
 
         plt.ioff()
         plt.show()
-        print("REINFORCE Training finished.")
+        print("REINFORCE training complete.")
 
-        # Save final policy
-        torch.save(self.policy.state_dict(), "reinforce_lunar_lander.pth")
-        print("Saved policy to reinforce_lunar_lander.pth")
-
-        self.env.close()
-
-    def evaluate(self, episodes=5):
+    def evaluate(self, deterministic=True, episodes=5):
         """
-        Evaluate the policy in 'human' mode for a certain number of episodes.
+        Evaluate the REINFORCE-trained policy.
         """
         if self.policy is None:
-            # Load from disk if needed
-            self.policy = PolicyNet()
-            self.policy.load_state_dict(torch.load("reinforce_lunar_lander.pth"))
-        self.env = self.create_env()
-        self.env.render_mode = 'human'  # Allow human rendering here
+            raise ValueError("Policy is not trained yet.")
+
+        # Crear el entorno sin envolverlo en Monitor para la evaluación
+        self.env = CustomLunarLanderEnv(fuel_penalty_multiplier=self.fuel_penalty_multiplier, render_mode='human')
+        state, _ = self.env.reset()
 
         for ep in range(episodes):
-            state, _ = self.env.reset()
             done = False
             total_reward = 0.0
             while not done:
                 state_tensor = torch.tensor(state, dtype=torch.float32).unsqueeze(0)
-                with torch.no_grad():
-                    action_probs = self.policy(state_tensor).squeeze(0)
-                dist = torch.distributions.Categorical(action_probs)
-                action = dist.sample()
-                state, reward, terminated, truncated, info = self.env.step(action.item())
+                action_probs = self.policy(state_tensor).squeeze(0)
+                action = torch.argmax(action_probs).item()
+
+                next_state, reward, terminated, truncated, info = self.env.step(action)
                 done = terminated or truncated
                 self.env.render()
                 total_reward += reward
-            print(f"Episode {ep+1} ended with reward={total_reward:.2f}")
+                state = next_state
+            print(f"Episode {ep + 1} ended with reward={total_reward:.2f}")
         self.env.close()
-
-###############################################################################
-# 4) Main: Select DQN or REINFORCE
-###############################################################################
 if __name__ == "__main__":
     """
     You can choose which method to use:
       - "dqn" for stable-baselines3 DQN
       - "pg"  for manual REINFORCE
     """
-    method = "dqn"  # or "pg"
+    method = "pg" #"dqn"  # or "pg"
 
     if method == "dqn":
         agent = DQNTrainer(fuel_penalty_multiplier=2.0)
-        train_mode = False
+        train_mode = True
         if train_mode:
             agent.train()       # Train DQN
         else:

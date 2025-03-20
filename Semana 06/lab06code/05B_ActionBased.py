@@ -67,7 +67,7 @@ class LunarLanderAgent:
             policy='MlpPolicy',
             env=self.env,
             verbose=1,
-            tensorboard_log=None
+            tensorboard_log="./logs/"
         )
 
     def train(self, total_timesteps=100000):
