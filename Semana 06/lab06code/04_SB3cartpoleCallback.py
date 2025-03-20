@@ -113,7 +113,7 @@ class RewardTrackingCallback(BaseCallback):
 ################################################################################
 # MAIN: Train or Load
 ################################################################################
-train_mode = True  # Set to True to train a new model, False to load and evaluate
+train_mode = False  # Set to True to train a new model, False to load and evaluate
 
 if train_mode:
     # Create environment

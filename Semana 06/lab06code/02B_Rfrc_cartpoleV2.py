@@ -181,7 +181,7 @@ def run_human_mode(env, policy_net):
 # Main Script
 # -----------------------------------------------------------------------------
 if __name__ == "__main__":
-    train = True  # Set to False to load a model and run in human mode
+    train = False  # Set to False to load a model and run in human mode
     env_name = "CartPole-v1"
     save_path = f"{env_name}_policy.pth"
 

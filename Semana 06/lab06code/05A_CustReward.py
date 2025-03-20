@@ -59,7 +59,7 @@ class LunarLanderAgent:
 
     def create_model(self):
         # Create the DQN model with TensorBoard logging
-        self.model = DQN('MlpPolicy', self.env, verbose=1, tensorboard_log="./logs/")
+        self.model = DQN('MlpPolicy', self.env, verbose=1, tensorboard_log= None)
 
     def train(self, total_timesteps=100000):
         # Create the environment
@@ -149,7 +149,7 @@ class LunarLanderAgent:
 
 if __name__ == "__main__":
     # Set train_mode to True to train, or False to evaluate
-    train_mode = True  # Set to False to run the trained model
+    train_mode = False  # Set to False to run the trained model
 
     agent = LunarLanderAgent(train_mode=train_mode)
 

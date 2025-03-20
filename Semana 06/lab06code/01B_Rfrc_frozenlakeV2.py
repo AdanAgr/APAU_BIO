@@ -200,7 +200,7 @@ def run_human_mode(env, policy_net):
 # -----------------------------------------------------------------------------
 if __name__ == "__main__":
     # Decide whether we are training or loading a saved model
-    train = True  # Set to False to load a model and run in human mode
+    train = False  # Set to False to load a model and run in human mode
     
     env_name = "FrozenLake-v1"
     # For demonstration, we fix is_slippery=False (deterministic environment)

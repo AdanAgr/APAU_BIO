@@ -136,7 +136,7 @@ class DQNTrainer:
             policy='MlpPolicy',
             env=self.env,
             verbose=1,
-            tensorboard_log="./logs/"
+            tensorboard_log=None
         )
 
         callback = RewardTrackingCallback()
@@ -145,24 +145,34 @@ class DQNTrainer:
         print("DQN model saved to dqn_custom_lunar_lander.zip")
         self.env.close()
 
-    def evaluate(self, deterministic=True):
-        # Re-create env with human rendering
-        self.env = self.create_env()
-        self.env.render_mode = 'human'
 
-        from stable_baselines3 import DQN
+    def evaluate(self, deterministic=True, episodes=5):
+        """
+        Evaluate the model in 'human' mode for a certain number of episodes.
+        """
         if self.model is None:
+            # Load from disk if needed
             self.model = DQN.load("dqn_custom_lunar_lander")
 
+        # Crear el entorno sin envolverlo en Monitor para la evaluación
+        self.env = CustomLunarLanderEnv(fuel_penalty_multiplier=self.fuel_penalty_multiplier, render_mode='human')
+
+        # Restablecer el entorno
         obs, info = self.env.reset()
-        done = False
-        while not done:
-            action, _ = self.model.predict(obs, deterministic=deterministic)
-            obs, reward, terminated, truncated, info = self.env.step(action)
-            done = terminated or truncated
-            self.env.render()
+
+        for ep in range(episodes):
+            done = False
+            total_reward = 0.0
+            while not done:
+                action, _ = self.model.predict(obs, deterministic=deterministic)
+                obs, reward, terminated, truncated, info = self.env.step(action)
+                done = terminated or truncated
+                self.env.render()  # Render the environment at each step
+                total_reward += reward
+            print(f"Episode {ep + 1} ended with reward={total_reward:.2f}")
 
         self.env.close()
+
 
 ###############################################################################
 # 3) Policy Gradient (REINFORCE) Approach
@@ -337,7 +347,7 @@ class REINFORCETrainer:
             self.policy = PolicyNet()
             self.policy.load_state_dict(torch.load("reinforce_lunar_lander.pth"))
         self.env = self.create_env()
-        self.env.render_mode = 'human'
+        self.env.render_mode = 'human'  # Allow human rendering here
 
         for ep in range(episodes):
             state, _ = self.env.reset()
@@ -369,7 +379,7 @@ if __name__ == "__main__":
 
     if method == "dqn":
         agent = DQNTrainer(fuel_penalty_multiplier=2.0)
-        train_mode = True
+        train_mode = False
         if train_mode:
             agent.train()       # Train DQN
         else:
