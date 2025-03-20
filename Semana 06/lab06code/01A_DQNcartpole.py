@@ -196,7 +196,7 @@ class Agent():
 
 
 # Usage
-train_mode = False  # Change to True if you want to retrain
+train_mode = True  # Change to True if you want to retrain
 if train_mode:
     agent = Agent('CartPole-v1', render_mode=None)
     scores = agent.train_model()

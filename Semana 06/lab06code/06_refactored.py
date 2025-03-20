@@ -364,11 +364,11 @@ if __name__ == "__main__":
       - "dqn" for stable-baselines3 DQN
       - "pg"  for manual REINFORCE
     """
-    method = "pg" #"dqn"  # or "pg"
+    method = "pg"                      #  "dqn" or "pg"
 
     if method == "dqn":
         agent = DQNTrainer(fuel_penalty_multiplier=2.0)
-        train_mode = True
+        train_mode = False
         if train_mode:
             agent.train()       # Train DQN
         else:
@@ -382,7 +382,7 @@ if __name__ == "__main__":
             num_iterations=500,      # Increase for better results
             batch_size_episodes=5
         )
-        train_mode = True
+        train_mode = False
         if train_mode:
             pg_agent.train()    # Train REINFORCE
         else:
