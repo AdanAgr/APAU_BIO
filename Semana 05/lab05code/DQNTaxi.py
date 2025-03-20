@@ -9,9 +9,9 @@ from collections import deque
 class DQN(nn.Module):
     def __init__(self, input_size, action_size):
         super(DQN, self).__init__()
-        self.fc1 = nn.Linear(input_size, 24)
-        self.fc2 = nn.Linear(24, 48)
-        self.fc3 = nn.Linear(48, action_size)
+        self.fc1 = nn.Linear(input_size, 64)
+        self.fc2 = nn.Linear(64, 128)
+        self.fc3 = nn.Linear(128, action_size)
         self.relu = nn.ReLU()
 
     def forward(self, x):
@@ -78,6 +78,8 @@ class Agent:
         dones_tensor = torch.FloatTensor(dones).to(self.device)
 
         current_q_values = self.model(states_tensor).gather(1, actions_tensor.unsqueeze(1)).squeeze(1)
+
+        # Use Double Q-learning
         next_q_values = self.target_model(next_states_tensor).max(1)[0]
         expected_q_values = rewards_tensor + self.gamma * next_q_values * (1 - dones_tensor)
 
