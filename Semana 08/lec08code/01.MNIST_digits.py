@@ -74,44 +74,60 @@ criterion = torch.nn.CrossEntropyLoss()
 
 ### BUCLE DE ENTRENAMIENTO ###
 
+# Por cada epoch:
 for epoch in range(num_epochs):
-    net.train()
-    total_loss = 0.0
-    correct_predictions = 0
-    total_samples = 0
+
+    ## 🔴 MODO ENTRENAMIENTO:
+    net.train() # activa dropout, batchnorm, etc.
+
+    total_loss = 0.0 # inicializa la pérdida total
+    correct_predictions = 0 # inicializa el nº de predicciones correctas
+    total_samples = 0 # inicializa el nº de ejemplos totales
+
+    # para CADA MINI-BATCH de datos de entrenamiento 
+    # (train_loader está dividido en mini-batches):
     for i, data in enumerate(train_loader, 0):
-        # get the inputs; data is a list of [inputs, labels]
-        inputs, labels = data
-        inputs = inputs.to(device)
-        labels = labels.to(device)
+        
+        # imágenes y etiquetas
+        inputs, labels = data # inputs: imágenes, labels: etiquetas (0-9)
+        inputs = inputs.to(device) # mueve los datos a la GPU
+        labels = labels.to(device) # mueve las etiquetas a la GPU
 
         # forward + backward + optimize
-        optimizer.zero_grad()
-        outputs = net(inputs)
-        loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()
+        optimizer.zero_grad() # limpiar los gradientes acumulados previamente
 
-        # # statistics after a batch
-        total_loss += loss.item()
-        _, predicted = torch.max(outputs, 1)
-        correct_predictions += (predicted == labels).sum().item()
-        total_samples += labels.size(0)
+        outputs = net(inputs) # hacer predicción con la red (forward pass)
+        loss = criterion(outputs, labels) # calcular la pérdida (CrossEntropyLoss)
+        loss.backward() # calcular los gradientes (backward pass)
+        optimizer.step() # actualizar los pesos de la red (optimización)
 
-    net.eval()
-    with torch.no_grad():
-        data_iter = iter(val_loader)
-        inputs_val, labels_val = next(data_iter)
-        inputs_val = inputs_val.to(device)
-        labels_val = labels_val.to(device)
-        outputs_val = net(inputs_val)
-        _, predicted = torch.max(outputs_val, 1)
-        correct_predictions_val = (predicted == labels_val).sum().item()
-        total_samples_val = labels_val.size(0)
+        # statistics after a batch
+        total_loss += loss.item() # acumula la pérdida total por batch
+        _, predicted = torch.max(outputs, 1) # clase con mayor probabilidad
+        correct_predictions += (predicted == labels).sum().item() # acumula nº de predicciones correctas
+        total_samples += labels.size(0) # nº de ejemplos procesados
 
-    accuracy = correct_predictions / total_samples
-    accuracy_val = correct_predictions_val / total_samples_val
-    average_loss = total_loss / len(train_loader)
+
+    ## 🔴 MODO VALIDACIÓN (al final de cada epoch):
+    net.eval() # desactiva dropout, batchnorm, etc.
+
+    with torch.no_grad(): # NO se calculan gradientes en la evaluación
+
+        data_iter = iter(val_loader) # carga datos de validación
+
+        inputs_val, labels_val = next(data_iter) # inputs: imágenes, labels: etiquetas
+        inputs_val = inputs_val.to(device) # mueve las imágenes a la GPU
+        labels_val = labels_val.to(device) # mueve las etiquetas a la GPU
+
+        outputs_val = net(inputs_val) # hacer predicción con la red (forward pass)
+
+        _, predicted = torch.max(outputs_val, 1) # clase con mayor probabilidad
+        correct_predictions_val = (predicted == labels_val).sum().item() # acumula nº de predicciones correctas
+        total_samples_val = labels_val.size(0) # nº de ejemplos procesados
+
+    accuracy = correct_predictions / total_samples # exactitud del modelo
+    accuracy_val = correct_predictions_val / total_samples_val # exactitud del modelo en validación
+    average_loss = total_loss / len(train_loader) # pérdida media por batch
     
-
+    # STATS
     print("Epoch {:02d}: loss {:.4f} - accuracy {:.4f} - validation accuracy {:.4f}".format(epoch+1, average_loss, accuracy, accuracy_val))
