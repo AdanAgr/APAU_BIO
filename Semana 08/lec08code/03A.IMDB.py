@@ -184,3 +184,14 @@ plt.title('Training and validation accuracy')
 plt.xlabel('Epochs')
 plt.legend()
 plt.savefig("03A.IMDB.Accuracy.png")
+
+
+
+
+
+(3*3*3 + 1)*32 +
+(3*3*32 + 1)*64 +
+(3*3*64 + 1)*128 +
+(3*3*128 + 1)*256 +
+(3*3*256 + 1)*256 +
+(12544 + 1)*2

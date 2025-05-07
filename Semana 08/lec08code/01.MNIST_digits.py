@@ -73,7 +73,6 @@ criterion = torch.nn.CrossEntropyLoss()
 
 
 ### BUCLE DE ENTRENAMIENTO ###
-
 # Por cada epoch:
 for epoch in range(num_epochs):
 
